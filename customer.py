@@ -1,4 +1,5 @@
 from __init__ import CURSOR as cus, CONN as c
+from restaurant import Restaurant
 
 class Customer:
     def __init__(self, id, first_name, last_name):
