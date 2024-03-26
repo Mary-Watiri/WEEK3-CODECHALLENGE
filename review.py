@@ -1,5 +1,3 @@
-# review.py
-
 from __init__ import CURSOR as cus, CONN as c
 
 class Review:
@@ -58,3 +56,47 @@ class Review:
             print("Review saved successfully.")
         except Exception as e:
             print("Error saving review:", e)
+        
+    @classmethod
+    def instance_from_db(cls, row):
+        """Create a review instance from the database row."""
+        try:
+            review = cls(row[0], row[1], row[2], row[3], row[4])
+            return review
+        except Exception as e:
+            print("Error creating review instance from DB row:", e)
+            return None
+    
+    @classmethod
+    def find_by_id(cls, id):
+        """Retrieve a review by its ID."""
+        try:
+            sql = "SELECT * FROM reviews WHERE id = ?"
+            row = cus.execute(sql, (id,)).fetchone()
+            return cls.instance_from_db(row) if row else None
+        except Exception as e:
+            print("Error fetching review by ID:", e)
+            return None
+
+    def delete(self):
+        """Delete the review from the database."""
+        try:
+            sql = "DELETE FROM reviews WHERE id = ?"
+            cus.execute(sql, (self.id,))
+            c.commit() 
+            print("Review deleted successfully")
+        except Exception as e:
+            print("Error deleting review:", e)
+
+    def reviews(self):
+        """Retrieve all reviews left by the customer."""
+        try:
+            sql = "SELECT * FROM reviews WHERE customer_id = ?"
+            cus.execute(sql, (self.customer_id,))
+            rows = cus.fetchall()
+            reviews = [Review.instance_from_db(row) for row in rows]
+            return reviews
+        except Exception as e:
+            print("Error fetching reviews:", e)
+            return []
+

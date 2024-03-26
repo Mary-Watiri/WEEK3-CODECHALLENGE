@@ -1,8 +1,4 @@
-# customer.py
-
 from __init__ import CURSOR as cus, CONN as c
-from review import Review
-from restaurant import Restaurant
 
 class Customer:
     def __init__(self, id, first_name, last_name):
@@ -50,10 +46,13 @@ class Customer:
         except Exception as e:
             print("Error creating customer:", e)
             return None
-            
+
     def reviews(self):
         """Return a collection of all the reviews that the customer has left."""
         try:
+            # Importing Review here to avoid circular dependency
+            from review import Review
+            
             sql = "SELECT * FROM reviews WHERE customer_id = ?"
             cus.execute(sql, (self.id,))
             reviews_data = cus.fetchall()
@@ -61,26 +60,20 @@ class Customer:
         except Exception as e:
             print("Error fetching reviews for customer:", e)
             return []
-
-    def restaurants(self):
-        """Return a collection of all the restaurants that the customer has reviewed."""
+    @classmethod
+    def get_by_id(cls, customer_id):
+        """Retrieve a customer by their ID."""
         try:
-            sql = """
-                SELECT restaurants.* FROM restaurants 
-                JOIN reviews ON restaurants.id = reviews.restaurant_id 
-                WHERE reviews.customer_id = ?
-            """
-            cus.execute(sql, (self.id,))
-            restaurants = cus.fetchall()
-            return restaurants
+            sql = "SELECT * FROM customers WHERE id = ?"
+            cus.execute(sql, (customer_id,))
+            customer_data = cus.fetchone()
+            if customer_data:
+                return cls(*customer_data)
+            else:
+                return None
         except Exception as e:
-            print("Error fetching restaurants reviewed by customer:", e)
-            return []
-            
-    def full_name(self):
-        """Return the full name of the customer."""
-        return f"{self.first_name} {self.last_name}"
-
+            print("Error fetching customer by ID:", e)
+            return None
     def favorite_restaurant(self):
         """Return the restaurant instance that has the highest star rating from this customer."""
         try:
@@ -100,10 +93,14 @@ class Customer:
                 return None
         except Exception as e:
             print("Error fetching favorite restaurant for customer:", e)
-            return None
-
+            return None  
+    
+    def full_name(self):
+        """Return the full name of the customer."""
+        return f"{self.first_name} {self.last_name}"
+    
     @classmethod
-    def get_by_id(cls, customer_id):
+    def find_by_id(cls, customer_id):
         """Retrieve a customer by their ID."""
         try:
             sql = "SELECT * FROM customers WHERE id = ?"
@@ -116,3 +113,25 @@ class Customer:
         except Exception as e:
             print("Error fetching customer by ID:", e)
             return None
+        
+    def delete(self):
+        """Delete the customer from the database."""
+        try:
+            sql = "DELETE FROM customers WHERE id = ?"
+            cus.execute(sql, (self.id,))
+            c.commit()
+            print("Customer deleted successfully.")
+        except Exception as e:
+            print("Error deleting customer:", e)
+            
+    @classmethod
+    def customer_full_name(cls, id):
+        """Retrieve and print the full name of a customer by their ID."""
+        try:
+            customer = cls.get_by_id(id)
+            if customer:
+                print(customer.full_name())
+            else:
+                print("Customer not found")
+        except Exception as e:
+            print("Error fetching customer full name:", e)
