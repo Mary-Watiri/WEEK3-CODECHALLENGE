@@ -21,7 +21,7 @@ if __name__ == "__main__":
     review2 = Review.create("Great coffee and ambiance.", customer2.id, restaurant2.id, 4)
 
     # Retrieve and display information
-    # Assuming you have the customer_id stored in the review object
+  
     review3 = Review.create("Excellent service!", customer1.id, restaurant2.id, 5)
 
     # Access the customer object associated with the review
